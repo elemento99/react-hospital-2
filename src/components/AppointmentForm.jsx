@@ -3,6 +3,8 @@ import Button from 'react-bootstrap/Button'
 import Form from 'react-bootstrap/Form'
 import { useHospital } from '../context/HospitalContext'
 import supabase from '../supabase/client'
+import Toast from 'react-bootstrap/Toast'
+import ToastContainer from 'react-bootstrap/ToastContainer'
 
 const AppointmentForm = () => {
   const {
@@ -19,6 +21,7 @@ const AppointmentForm = () => {
   const [selectedName, setSelectedName] = useState('')
   const [selectedDate, setSelectedDate] = useState('')
   const [filteredDoctors, setFilteredDoctors] = useState([])
+  const [showMessage, setShowMessage] = useState(false)  // Estado para controlar el mensaje
 
   useEffect(() => {
     fetchServices()
@@ -83,70 +86,98 @@ const AppointmentForm = () => {
         })
 
       if (error) throw error
-      console.log('Appointment created successfully!')
+
+      // Mostrar los datos en la consola
+      console.log('Datos del formulario:', {
+        doctor_id: selectedDoctor,
+        patient_name: selectedName,
+        service_id: selectedService,
+        appointment_date: selectedDate
+      })
+
+   
+      setShowMessage(true);
+
+      setTimeout(() => {
+        setShowMessage(false) // Ocultar el mensaje después de 3 segundos
+      }, 3000)
+
     } catch (error) {
       console.error(error.message || 'An unknown error occurred')
     }
   }
 
   return (
-    <Form onSubmit={handleSubmit}> {/* Cambié de onClick a onSubmit */}
-      <fieldset>
-        <Form.Group className="mb-3">
-          <Form.Label htmlFor="fullName">Nombre completo</Form.Label>
-          <Form.Control id="fullName"
-            value={selectedName}
-            onChange={handleName}
-            placeholder="Escriba su nombre completo" />
-        </Form.Group>
+    <>
+      <Form onSubmit={handleSubmit}> 
+        <fieldset>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="fullName">Nombre completo</Form.Label>
+            <Form.Control id="fullName"
+              value={selectedName}
+              onChange={handleName}
+              placeholder="Escriba su nombre completo" />
+          </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label htmlFor="service">Servicio</Form.Label>
-          <Form.Select
-            id="service"
-            value={selectedService}
-            onChange={handleServiceChange}
-          >
-            <option value="">Seleccione un servicio</option>
-            {services.map((service) => (
-              <option value={service.id} key={service.id}>
-                {service.name}
-              </option>
-            ))}
-          </Form.Select>
-        </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="service">Servicio</Form.Label>
+            <Form.Select
+              id="service"
+              value={selectedService}
+              onChange={handleServiceChange}
+            >
+              <option value="">Seleccione un servicio</option>
+              {services.map((service) => (
+                <option value={service.id} key={service.id}>
+                  {service.name}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label htmlFor="doctor">Doctor</Form.Label>
-          <Form.Select
-            id="doctor"
-            value={selectedDoctor}
-            onChange={handleDoctorChange}
-            disabled={!selectedService || filteredDoctors.length === 0}
-          >
-            <option value="">Seleccione un doctor</option>
-            {filteredDoctors.map((doctor) => (
-              <option value={doctor.id} key={doctor.id}>
-                {doctor.name}
-              </option>
-            ))}
-          </Form.Select>
-        </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="doctor">Doctor</Form.Label>
+            <Form.Select
+              id="doctor"
+              value={selectedDoctor}
+              onChange={handleDoctorChange}
+              disabled={!selectedService || filteredDoctors.length === 0}
+            >
+              <option value="">Seleccione un doctor</option>
+              {filteredDoctors.map((doctor) => (
+                <option value={doctor.id} key={doctor.id}>
+                  {doctor.name}
+                </option>
+              ))}
+            </Form.Select>
+          </Form.Group>
 
-        <Form.Group className="mb-3">
-          <Form.Label htmlFor="schedule">Horario</Form.Label>
-          <Form.Control
-            type="datetime-local"
-            id="schedule"
-            placeholder="Seleccione la fecha y hora"
-            value={selectedDate}
-            onChange={handleDate}
-          />
-        </Form.Group>
+          <Form.Group className="mb-3">
+            <Form.Label htmlFor="schedule">Horario</Form.Label>
+            <Form.Control
+              type="datetime-local"
+              id="schedule"
+              placeholder="Seleccione la fecha y hora"
+              value={selectedDate}
+              onChange={handleDate}
+            />
+          </Form.Group>
 
-        <Button type="submit">Enviar</Button> {/* Cambié de type="button" a type="submit" */}
-      </fieldset>
-    </Form>
+          <Button type="submit">Enviar</Button>
+        </fieldset>
+      </Form>
+
+      {/* Toast Container para mostrar el mensaje */}
+      <ToastContainer position="bottom-end" className="p-3">
+        <Toast show={showMessage} onClose={() => setShowMessage(false)}>
+          <Toast.Header>
+            <strong className="me-auto">Cita Agendada</strong>
+            <small>Ahora</small>
+          </Toast.Header>
+          <Toast.Body>¡Cita agendada exitosamente!</Toast.Body>
+        </Toast>
+      </ToastContainer>
+    </>
   )
 }
 
