@@ -1,42 +1,115 @@
-import React from 'react';
-import { useState, useEffect } from 'react';
-import Button from 'react-bootstrap/Button';
-import Form from 'react-bootstrap/Form';
-import { useHospital } from '../context/HospitalContext';
+import React, { useState, useEffect } from 'react'
+import Button from 'react-bootstrap/Button'
+import Form from 'react-bootstrap/Form'
+import { useHospital } from '../context/HospitalContext'
+import supabase from '../supabase/client'
 
 const AppointmentForm = () => {
+  const {
+    services,
+    doctors,
+    doctorServices,
+    fetchServices,
+    fetchDoctors,
+    fetchDoctorServices
+  } = useHospital()
 
-  const { services, fetchServices } = useHospital()
-  const [selectedService, setSelectedService] = useState('');
-  const handleServiceChange = (event) => {
-    setSelectedService(event.target.value);
-  };
+  const [selectedService, setSelectedService] = useState('')
+  const [selectedDoctor, setSelectedDoctor] = useState('')
+  const [selectedName, setSelectedName] = useState('')
+  const [selectedDate, setSelectedDate] = useState('')
+  const [filteredDoctors, setFilteredDoctors] = useState([])
 
   useEffect(() => {
     fetchServices()
+    fetchDoctors()
+    fetchDoctorServices()
   }, [])
 
+  const handleServiceChange = (event) => {
+    setSelectedService(event.target.value)
+  }
 
+  const filterDoctorsByServices = () => {
+    if (!selectedService) {
+      setFilteredDoctors([])
+      return
+    }
+
+    const doctorIdsWithSelectedService = doctorServices
+      .filter((doctorService) => doctorService.service_id === selectedService)
+      .map((doctorService) => doctorService.doctor_id)
+
+    const result = doctors.filter((doctor) =>
+      doctorIdsWithSelectedService.includes(doctor.id)
+    )
+
+    setFilteredDoctors(result)
+  }
+
+  useEffect(() => {
+    filterDoctorsByServices()
+  }, [selectedService, doctorServices])
+
+  const handleDoctorChange = (e) => {
+    setSelectedDoctor(e.target.value)
+  }
+
+  const handleName = (e) => {
+    setSelectedName(e.target.value)
+  }
+
+  const handleDate = (e) => {
+    setSelectedDate(e.target.value)
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault() // Prevenir la recarga del formulario
+
+    // Validar los campos
+    if (!selectedDoctor || !selectedName || !selectedService || !selectedDate) {
+      console.error('Todos los campos deben estar llenos')
+      return
+    }
+
+    try {
+      const { error } = await supabase
+        .from('appointments')
+        .insert({
+          doctor_id: selectedDoctor,
+          patient_name: selectedName,
+          service_id: selectedService,
+          appointment_date: selectedDate
+        })
+
+      if (error) throw error
+      console.log('Appointment created successfully!')
+    } catch (error) {
+      console.error(error.message || 'An unknown error occurred')
+    }
+  }
 
   return (
-    <Form>
+    <Form onSubmit={handleSubmit}> {/* Cambié de onClick a onSubmit */}
       <fieldset>
         <Form.Group className="mb-3">
           <Form.Label htmlFor="fullName">Nombre completo</Form.Label>
-          <Form.Control
-            id="fullName"
-            placeholder="Escriba su nombre completo"
-          />
+          <Form.Control id="fullName"
+            value={selectedName}
+            onChange={handleName}
+            placeholder="Escriba su nombre completo" />
         </Form.Group>
-
 
         <Form.Group className="mb-3">
           <Form.Label htmlFor="service">Servicio</Form.Label>
-          <Form.Select id="service"
+          <Form.Select
+            id="service"
             value={selectedService}
-            onChange={handleServiceChange}>
+            onChange={handleServiceChange}
+          >
+            <option value="">Seleccione un servicio</option>
             {services.map((service) => (
-              <option value={service.name} key={service.id}>
+              <option value={service.id} key={service.id}>
                 {service.name}
               </option>
             ))}
@@ -45,11 +118,18 @@ const AppointmentForm = () => {
 
         <Form.Group className="mb-3">
           <Form.Label htmlFor="doctor">Doctor</Form.Label>
-          <Form.Select id="doctor">
+          <Form.Select
+            id="doctor"
+            value={selectedDoctor}
+            onChange={handleDoctorChange}
+            disabled={!selectedService || filteredDoctors.length === 0}
+          >
             <option value="">Seleccione un doctor</option>
-            <option value="dr_smith">Dr. Smith</option>
-            <option value="dr_jones">Dr. Jones</option>
-            {/* Agrega más opciones según sea necesario */}
+            {filteredDoctors.map((doctor) => (
+              <option value={doctor.id} key={doctor.id}>
+                {doctor.name}
+              </option>
+            ))}
           </Form.Select>
         </Form.Group>
 
@@ -59,14 +139,15 @@ const AppointmentForm = () => {
             type="datetime-local"
             id="schedule"
             placeholder="Seleccione la fecha y hora"
-            defaultValue="2024-12-21T14:30"
+            value={selectedDate}
+            onChange={handleDate}
           />
         </Form.Group>
 
-        <Button type="submit">Submit</Button>
+        <Button type="submit">Enviar</Button> {/* Cambié de type="button" a type="submit" */}
       </fieldset>
     </Form>
-  );
-};
+  )
+}
 
-export default AppointmentForm;
+export default AppointmentForm

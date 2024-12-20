@@ -12,12 +12,12 @@ export const useHospital = () => {
 };
 
 export const HospitalContextProvider = ({ children }) => {
-  const [loading, setLoading] = useState(false)
   const [doctors, setDoctors] = useState([])
   const [error, setError] = useState(null) 
   const [services, setServices]= useState([])
-  const [loadingDoctors, setLoadingDoctors] = useState(true)
-  const [loadingServices, setLoadingServices] = useState(true)
+  const [loading, setLoading]= useState(false)
+  const[doctorServices,setDoctorServices]=useState([])
+
 
 
   const getDoctors = async () => {
@@ -36,16 +36,14 @@ export const HospitalContextProvider = ({ children }) => {
     } 
   }
   const fetchDoctors = async () => {
-    setLoadingDoctors(true)
     try {
       await getDoctors()
     } catch (err) {
       console.error('Error al cargar los doctores:', err)
-    } finally {
-      setLoadingDoctors(false)
-    }
-  }
+    } 
 
+    
+  }
 
   const getServices = async ()=>{
     try{const{data, error}= await supabase
@@ -59,22 +57,36 @@ export const HospitalContextProvider = ({ children }) => {
   }
  
   const fetchServices = async () => {
-    setLoadingServices(true)
     try {
       await getServices()
     } catch (err) {
       console.error('Error al cargar los servicios:', err)
-    } finally {
-      setLoadingServices(false)
     }
   }
+  const fetchDoctorServices=  async function getServiceDoctors() {
+    const { data, error } = await supabase
+      .from('doctor_services')
+      .select(`
+        service_id,
+        services (name),
+        doctor_id,
+        doctors (name)
+      `);
+  
+    if (error) {
+      console.error('Error fetching service doctors:', error);
+      return;
+    }
+  
+    setDoctorServices(data)
+  }
+  
 
-  const doctorById = async()=>{}
-  const serviceById = async()=>{}
+  
 
 
   return (
-    <HospitalContext.Provider value={{ doctors, services, loading, error, getDoctors, getServices, fetchServices, fetchDoctors, }}>
+    <HospitalContext.Provider value={{ doctors, services, loading, error, getDoctors, getServices, doctorServices, fetchServices, fetchDoctors,fetchDoctorServices }}>
       {children}
     </HospitalContext.Provider>
   )
