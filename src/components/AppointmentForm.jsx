@@ -167,7 +167,7 @@ const AppointmentForm = () => {
         </fieldset>
       </Form>
 
-      {/* Toast Container para mostrar el mensaje */}
+
       <ToastContainer position="bottom-end" className="p-3">
         <Toast show={showMessage} onClose={() => setShowMessage(false)}>
           <Toast.Header>

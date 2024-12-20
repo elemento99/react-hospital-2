@@ -7,3 +7,11 @@ VITE_SUPABASE_KEY = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSI
 VITE_SUPABASE_URL =https://xwaesxljbultgndcuzec.supabase.co
 
 Como archivo principal, estoy utilizando el Home en vez del app.jsx, ya que este último cumple la función de Router (para utilizar como base en los proyectos futuros) Esto lo realice para hacer fetch de los servicios de doctores y doctores desde el componente principal, para luego insertar los datos como props y cumplir con la pauta de la tarea.
+
+Las dependencias a utilizar, todas instaladas a través de npm
+    "@supabase/supabase-js": "^2.47.10",
+    "bootstrap": "^5.3.3",
+    "react-bootstrap": "^2.10.7",
+    "react-dom": "^18.3.1",
+    "react-router": "^7.0.2",
+    "react-router-dom": "^7.0.2"
